@@ -1,44 +1,32 @@
-import React, { Component } from "react";
+import React, { useState } from "react";
 import css from './ImageGallery.module.css';
 import PropTypes from "prop-types";
 import Modal from "components/Modal/Modal";
 
-class ImageGalleryItem extends Component {
+const ImageGalleryItem = ({ picture }) => {
+        const [isModalOpen, setIsModalOpen] = useState(false);
 
-        static propTypes = {
-                picture: PropTypes.shape({
-                        webformatURL: PropTypes.string, 
-                        largeImageURL: PropTypes.string, 
-                        tags: PropTypes.string,
-                }).isRequired,
-        };
+        const { webformatURL, largeImageURL, tags } = picture;
 
-        state = {
-                isModalOpen: false,
+        const onCloseModal = () => {
+                setIsModalOpen(false);
         }
 
-        onOpenModal = () => {
-                this.setState({
-                        isModalOpen: true,
-                })
-        }
-
-        onCloseModal = () => {
-                this.setState({
-                        isModalOpen: false,
-                })
-        }
-
-        render() {
-                const { webformatURL, largeImageURL, tags } = this.props.picture;
-                return (
-                        <div>
-                                <img src={webformatURL} alt={tags} className={css.image} onClick={this.onOpenModal}/>
-                                {this.state.isModalOpen && <Modal onCloseModal={this.onCloseModal}><img src={largeImageURL} alt={tags} /></Modal>}
-                        </div>
-                        
-                )
-        }
+        return (
+        <div>
+                <img src={webformatURL} alt={tags} className={css.image} onClick={() => {setIsModalOpen(true)}}/>
+                        {isModalOpen && <Modal onCloseModal={onCloseModal}
+                        ><img src={largeImageURL} alt={tags} /></Modal>}
+                </div>
+        )
 }
 
+ImageGalleryItem.propTypes = {
+        picture: PropTypes.shape({
+                webformatURL: PropTypes.string, 
+                largeImageURL: PropTypes.string, 
+                tags: PropTypes.string,
+        }).isRequired,
+};
+        
 export default ImageGalleryItem;

@@ -1,32 +1,25 @@
-import React, {Component} from "react";
+import React, {useState} from "react";
 import css from './Searchbar.module.css'
 import {ReactComponent as SearchIcon} from '../../icons/searchIcon.svg';
 import PropTypes from "prop-types";
 
-class Searchbar extends Component {
+const Searchbar = ({onSubmit}) => {
 
-    static propTypes = {
-        onSubmit: PropTypes.func.isRequired,
+    const [query, setQuery] = useState('');
+
+    const onInputChange = (e) => {
+        setQuery(e.currentTarget.value.toLowerCase());
     }
 
-    state= {
-        query: '',
-    }
-
-    onChange = (e) => {
-        this.setState({query: e.currentTarget.value.toLowerCase()})
-    }
-
-    onSubmit = (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
-        this.props.onSubmit(this.state.query.trim());
-        this.setState({query: ''});
+        onSubmit(query.trim());
+        setQuery('');
     }
 
-    render() {
         return (
         <header className={css.searchbar}>
-            <form className={css.form} onSubmit={this.onSubmit}>
+            <form className={css.form} onSubmit={handleSubmit}>
                 <button type="submit" className={css.button} aria-label="Search">
                     <SearchIcon width="25" height="25"/>
                 </button>
@@ -38,14 +31,17 @@ class Searchbar extends Component {
                     autoComplete="off"
                     autoFocus
                     placeholder="Search images and photos"
-                    value={this.state.query}
-                    onChange={this.onChange}
+                    value={query}
+                    onChange={onInputChange}
                     />
                 </label>
             </form>
         </header>
         )
-    }
 };
+
+Searchbar.propTypes = {
+    onSubmit: PropTypes.func.isRequired,
+}
 
 export default Searchbar;
