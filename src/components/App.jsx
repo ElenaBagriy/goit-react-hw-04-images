@@ -1,4 +1,4 @@
-import React, {Component} from "react";
+import React, {Component, useState, useEffect} from "react";
 import Searchbar from "./Searchbar/Searchbar";
 import ImageGallery from "./ImageGallery/ImageGallery";
 import { fetchImages } from "../service/api";
@@ -7,27 +7,21 @@ import Loader from "./Loader/Loader";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-export class App extends Component {
-  state = {
-    query: '',
-    page: 1,
-    pictures: [],
-    showButton: false,
-    loading: false,
-  }
+const App = () => {
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [pictures, setPictures] = useState([]);
+  const [showButton, setShowButton] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  async componentDidUpdate(_, prevState) {
+  useEffect(() => {
+    if (query === '') return;
 
-    if (prevState.query !== this.state.query || prevState.page !== this.state.page) {
-
-      this.setState({
-        loading: true,
-      });
-
+    async function findImages() {
       try {
-        const { hits, totalHits } = await fetchImages(this.state.query, this.state.page);
-        const loadedPictures = hits.reduce((acc, {id, webformatURL, largeImageURL, tags}) => {
-          acc.push({id, webformatURL, largeImageURL, tags});
+        const { hits, totalHits } = await fetchImages(query, page);
+        const loadedPictures = hits.reduce((acc, { id, webformatURL, largeImageURL, tags }) => {
+          acc.push({ id, webformatURL, largeImageURL, tags });
           return acc;
         }, []);
 
@@ -35,57 +29,47 @@ export class App extends Component {
           throw new Error('Sorry, there are no images with such name');
         };
 
-        if (this.state.page === 1) {
-           toast[`success`](`${totalHits} images found`)
+        if (page === 1) {
+          toast[`success`](`${totalHits} images found`)
         };
 
-        this.setState(prevState => ({
-          pictures: [...prevState.pictures, ...loadedPictures],
-        }));
+        setPictures(prevPictures => [...prevPictures, ...loadedPictures]);
 
-        if (this.state.page >= Math.ceil(totalHits / 12)) {
-          return this.setState({
-            showButton: false,
-          });
+        if (page >= Math.ceil(totalHits / 12)) {
+          return setShowButton(false);
         };
 
-        this.setState({
-          showButton: true,
-        })
+        setShowButton(true);
       } catch (error) {
-        toast['error'] (error.message);
+        toast['error'](error.message);
 
       } finally {
-        this.setState({
-          loading: false,
-        });
+        setLoading(false);
       }
     }
-  }
 
-  onSearchSubmit = (query) => {
+    findImages();
 
-    if (query.trim() === '') {
+  }, [query, page])
+  
+
+  const onSearchSubmit = (searchQuery) => {
+
+    if (searchQuery.trim() === '') {
       return toast['error']('Please, type something to find images');
     };
     
-    this.setState({
-      query, 
-      page: 1,
-      pictures: [],
-      showButton: false,
-    })
-
+    setQuery(searchQuery);
+    setPage(1);
+    setPictures([]);
+    setShowButton(false)
   }
 
-  onLoadMore = () => {
-    this.setState(prevState => ({
-      page: prevState.page +1,
-    }))
+  const onLoadMore = () => {
+    setPage(prevPage => prevPage + 1);
   }
 
-  render() {
-    return (
+  return (
       <div
         style={{
           display: "grid",
@@ -94,10 +78,10 @@ export class App extends Component {
           paddingBottom: "24px",
         }}
       >
-        <Searchbar onSubmit={this.onSearchSubmit}/>
-        {this.state.pictures.length !== 0 && <ImageGallery pictures={this.state.pictures}/>}
-        {this.state.showButton && <Button onClick={this.onLoadMore} >Load more</Button>}
-        {this.state.loading && <Loader/>}
+        <Searchbar onSubmit={onSearchSubmit}/>
+        {pictures.length !== 0 && <ImageGallery pictures={pictures}/>}
+        {showButton && <Button onClick={onLoadMore} >Load more</Button>}
+        {loading && <Loader/>}
         <ToastContainer position="top-right"
         autoClose={5000}
         hideProgressBar
@@ -110,5 +94,8 @@ export class App extends Component {
         theme="light"></ToastContainer>
       </div>
     );
-  }
 }
+
+
+
+export default App;
